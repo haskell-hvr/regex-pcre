@@ -5,7 +5,7 @@ expressions.  If you import this along with other backends, then
 you should do so with qualified imports, perhaps renamed for
 convenience.
 
-You will need to have libpcre, from <http://www.pcre.org/>, to use
+You will need to have libpcre, from www.pcre.org, to use
 this module.  The haskell must be compiled with -DHAVE_PCRE_H and
 linked with pcre.  This is the default in the cabal file.
 
@@ -34,14 +34,18 @@ The "Text.Regex.PCRE.String", "Text.Regex.PCRE.ByteString", and
 exported by this module and medium- and low-level interfaces that
 returns error using Either structures.
 -}
-
-module Text.Regex.PCRE(
+{- Copyright   :  (c) Chris Kuklewicz 2007 -}
+module Text.Regex.PCRE(getVersion_Text_Regex_PCRE
   -- ** Wrap, for '=~' and '=~~', types and constants
-   module Text.Regex.PCRE.Wrap
+  ,module Text.Regex.PCRE.Wrap
   -- ** String, instances only
   ,module Text.Regex.PCRE.String
+  -- ** Seq Char, instances only
+  ,module Text.Regex.PCRE.Sequence
   -- ** ByteString, instances only
-  ,module Text.Regex.PCRE.ByteString) where
+  ,module Text.Regex.PCRE.ByteString
+  -- ** Lazy ByteString, instances only
+  ,module Text.Regex.PCRE.ByteString.Lazy) where
 
 import Text.Regex.PCRE.Wrap(Regex, CompOption(CompOption), ExecOption(ExecOption), (=~), (=~~),
   unusedOffset, getNumSubs, configUTF8, getVersion,
@@ -52,4 +56,13 @@ import Text.Regex.PCRE.Wrap(Regex, CompOption(CompOption), ExecOption(ExecOption
   execBlank, execAnchored, execNotBOL, execNotEOL, execNotEmpty,
   execNoUTF8Check, execPartial)
 import Text.Regex.PCRE.String()
+import Text.Regex.PCRE.Sequence()
 import Text.Regex.PCRE.ByteString()
+import Text.Regex.PCRE.ByteString.Lazy()
+import Data.Version(Version(..))
+
+getVersion_Text_Regex_PCRE :: Version
+getVersion_Text_Regex_PCRE =
+  Version { versionBranch = [0,90]
+          , versionTags = ["unstable"]
+          }

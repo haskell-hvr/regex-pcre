@@ -1,9 +1,5 @@
--- ****************************************************************
--- To fix for cabal < 1.1.4 comment out the Extra-Source-Files line
--- You may need to edit the Extra-Lib-Dirs entry near the bottom
--- ****************************************************************
 Name:                   regex-pcre
-Version:                0.80
+Version:                0.90
 -- Cabal-Version:       >=1.1.4
 License:                BSD3
 License-File:           LICENSE
@@ -12,37 +8,36 @@ Author:                 Christopher Kuklewicz
 Maintainer:             TextRegexLazy@personal.mightyreason.com
 Stability:              Seems to work, passes a few tests
 Homepage:               http://sourceforge.net/projects/lazy-regex
--- Package-URL:
+Package-URL:            http://darcs.haskell.org/packages/regex-unstable/regex-pcre/
 Synopsis:               Replaces/Enhances Text.Regex
-Description:            The PCRE backend to accompany regex-base
+Description:            The PCRE backend to accompany regex-base, see www.pcre.org
 Category:               Text
 Tested-With:            GHC
--- The base >=0 2.0 is for the upcoming GHC 6.6
--- Build-Depends:        base >= 2.0, regex-base
-Build-Depends:          regex-base, base, fps >= 0.7
+Build-Depends:          base >= 2.0, regex-base >= 0.80
 -- Data-Files:
 -- Extra-Source-Files:
 -- Extra-Tmp-Files:
 Exposed-Modules:        Text.Regex.PCRE
                         Text.Regex.PCRE.Wrap
                         Text.Regex.PCRE.String
+                        Text.Regex.PCRE.Sequence
                         Text.Regex.PCRE.ByteString
+                        Text.Regex.PCRE.ByteString.Lazy
 Buildable:              True
 -- Other-Modules:
--- be backward compatible until 6.4.2 is futher deployed
 -- HS-Source-Dirs:         "."
-Extensions:             MultiParamTypeClasses, FunctionalDependencies
+Extensions:             MultiParamTypeClasses, FunctionalDependencies, BangPatterns
 -- GHC-Options:            -Wall -Werror
 GHC-Options:            -Wall -Werror -O2
 -- GHC-Options:            -Wall -ddump-minimal-imports
--- GHC-Prog-Options: 
+-- GHC-Prof-Options: 
 -- Hugs-Options:
 -- NHC-Options:
--- Includes:
--- Include-Dirs:
 -- C-Sources:
-Extra-Libraries:        pcre
--- Extra-Lib-Dirs:         /opt/local/lib
-CC-Options:             -DHAVE_PCRE_H
+-- Includes:
 -- LD-Options:
 -- Frameworks:
+Include-Dirs:           /opt/local/include
+Extra-Lib-Dirs:         /opt/local/lib
+Extra-Libraries:        pcre
+CC-Options:             -DHAVE_PCRE_H

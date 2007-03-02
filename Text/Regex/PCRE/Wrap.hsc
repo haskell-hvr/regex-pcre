@@ -1,10 +1,12 @@
 {-# OPTIONS_GHC  -fglasgow-exts -fffi #-}
+-- The exported symbols are the same whether HAVE_PCRE_H is defined,
+-- but when if it is not defined then 'getVersion == Nothing' and all
+-- other exported values will call error or fail.
+
 -- | This will fail or error only if allocation fails or a nullPtr is passed in.
 -- TODO :: Consider wrapMatchAll using list of start/end offsets and not MatchArray
 --
--- The exported symbols are the same whether HAVE_PCRE_H is defined,
--- but when if it is not defined then @getVersion == Nothing@ and all
--- other exported values will call error or fail.
+{- Copyright   :  (c) Chris Kuklewicz 2007 -}
 module Text.Regex.PCRE.Wrap(
   -- ** High-level interface
   Regex,
@@ -153,9 +155,8 @@ instance RegexOptions Regex CompOption ExecOption where
            in match q x
 
 -- (=~~) ::(RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Monad m) => source1 -> source -> m target
-(=~~) x r = let q :: Regex
-                q = makeRegex r
-            in matchM q x
+(=~~) x r = do (q :: Regex) <-  makeRegex r
+               matchM q x
 
 type PCRE_Extra = ()
 

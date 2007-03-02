@@ -4,7 +4,7 @@ This exports instances of the high level API and the medium level
 API of 'compile','execute', and 'regexec'.
 -}
 {- Copyright   :  (c) Chris Kuklewicz 2007 -}
-module Text.Regex.PCRE.ByteString(
+module Text.Regex.PCRE.ByteString.Lazy(
   -- ** Types
   Regex,
   MatchOffset,
@@ -46,33 +46,49 @@ module Text.Regex.PCRE.ByteString(
   ) where
 
 import Text.Regex.PCRE.Wrap -- all
-import Data.Array(Array,listArray)
-import Data.ByteString(ByteString)
-import qualified Data.ByteString as B(empty,useAsCString,last,take,drop)
+import Data.Array(Array)
+import qualified Data.ByteString.Lazy as L(ByteString,toChunks,fromChunks,last,snoc)
+import qualified Data.ByteString as B(ByteString,concat)
 import qualified Data.ByteString.Base as B(unsafeUseAsCString,unsafeUseAsCStringLen)
 import System.IO.Unsafe(unsafePerformIO)
 import Text.Regex.Base.RegexLike(RegexContext(..),RegexMaker(..),RegexLike(..),MatchOffset,MatchLength)
 import Text.Regex.Base.Impl(polymatch,polymatchM)
-import Foreign.C.String(CStringLen)
+import qualified Text.Regex.PCRE.ByteString as BS(execute,regexec)
+import Foreign.C.String(CString,CStringLen)
 
-instance RegexContext Regex ByteString ByteString where
+instance RegexContext Regex L.ByteString L.ByteString where
   match = polymatch
   matchM = polymatchM
 
+{-# INLINE fromLazy #-}
+fromLazy :: L.ByteString -> B.ByteString
+fromLazy = B.concat . L.toChunks
+
+{-# INLINE toLazy #-}
+toLazy :: B.ByteString -> L.ByteString
+toLazy = L.fromChunks . return
+
 unwrap :: (Show e) => Either e v -> IO v
-unwrap x = case x of Left err -> fail ("Text.Regex.PCRE.ByteString died: "++ show err)
+unwrap x = case x of Left err -> fail ("Text.Regex.PCRE.ByteString.Lazy died: "++ show err)
                      Right v -> return v
 
-asCStringLen :: ByteString -> (CStringLen -> IO a) -> IO a
-asCStringLen = B.unsafeUseAsCStringLen
+{-# INLINE asCString #-}
+asCString :: L.ByteString -> (CString -> IO a) -> IO a
+asCString s = if (0==L.last s)
+                then B.unsafeUseAsCString (fromLazy s)
+                else B.unsafeUseAsCString (fromLazy (L.snoc s 0))
 
-instance RegexMaker Regex CompOption ExecOption ByteString where
+{-# INLINE asCStringLen #-}
+asCStringLen :: L.ByteString -> (CStringLen -> IO a) -> IO a
+asCStringLen s = B.unsafeUseAsCStringLen (fromLazy s)
+
+instance RegexMaker Regex CompOption ExecOption L.ByteString where
   makeRegexOpts c e pattern = unsafePerformIO $
     compile c e pattern >>= unwrap
   makeRegexOptsM c e pattern = either (fail.show) return $ unsafePerformIO $
     compile c e pattern
 
-instance RegexLike Regex ByteString where
+instance RegexLike Regex L.ByteString where
   matchTest regex bs = unsafePerformIO $
     asCStringLen bs (wrapTest 0 regex) >>= unwrap
   matchOnce regex bs = unsafePerformIO $
@@ -87,12 +103,9 @@ instance RegexLike Regex ByteString where
 --
 compile :: CompOption  -- ^ (summed together)
         -> ExecOption  -- ^ (summed together)
-        -> ByteString  -- ^ The regular expression to compile
+        -> L.ByteString  -- ^ The regular expression to compile
         -> IO (Either (MatchOffset,String) Regex) -- ^ Returns: the compiled regular expression
 compile c e pattern = do
-  let asCString = if (0==B.last pattern)
-                    then B.unsafeUseAsCString
-                    else B.useAsCString
   asCString pattern (wrapCompile c e)
 
 -- ---------------------------------------------------------------------
@@ -101,34 +114,19 @@ compile c e pattern = do
 --
 -- | Matches a regular expression against a string
 execute :: Regex      -- ^ Compiled regular expression
-        -> ByteString -- ^ String to match against
+        -> L.ByteString -- ^ String to match against
         -> IO (Either WrapError (Maybe (Array Int (MatchOffset,MatchLength))))
                 -- ^ Returns: 'Nothing' if the regex did not match the
                 -- string, or:
                 --   'Just' an array of (offset,length) pairs where index 0 is whole match, and the rest are the captured subexpressions.
-execute regex bs = do
-  maybeStartEnd <- asCStringLen bs (wrapMatch 0 regex)
-  case maybeStartEnd of
-    Right Nothing -> return (Right Nothing)
-    Right (Just parts) -> 
-      return . Right . Just . listArray (0,pred (length parts))
-      . map (\(s,e)->(fromIntegral s, fromIntegral (e-s))) $ parts
-    Left err -> return (Left err)
+execute regex bs = BS.execute regex (fromLazy bs)
 
 regexec :: Regex      -- ^ Compiled regular expression
-        -> ByteString -- ^ String to match against
-        -> IO (Either WrapError (Maybe (ByteString, ByteString, ByteString, [ByteString])))
+        -> L.ByteString -- ^ String to match against
+        -> IO (Either WrapError (Maybe (L.ByteString, L.ByteString, L.ByteString, [L.ByteString])))
 regexec regex bs = do
-  let getSub (start,stop) | start == unusedOffset = B.empty
-                          | otherwise = B.take (stop-start) . B.drop start $ bs
-      matchedParts [] = (B.empty,B.empty,bs,[]) -- no information
-      matchedParts (matchedStartStop@(start,stop):subStartStop) = 
-        (B.take start bs
-        ,getSub matchedStartStop
-        ,B.drop stop bs
-        ,map getSub subStartStop)
-  maybeStartEnd <- asCStringLen bs (wrapMatch 0 regex)
-  case maybeStartEnd of
-    Right Nothing -> return (Right Nothing)
-    Right (Just parts) -> return . Right . Just . matchedParts $ parts
-    Left err -> return (Left err)
+  x <- BS.regexec regex (fromLazy bs)
+  return $ case x of
+             Left e -> Left e
+             Right Nothing -> Right Nothing
+             Right (Just (a,b,c,ds)) -> Right (Just (toLazy a,toLazy b,toLazy c,map toLazy ds))
