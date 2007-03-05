@@ -36,6 +36,7 @@ returns error using Either structures.
 -}
 {- Copyright   :  (c) Chris Kuklewicz 2007 -}
 module Text.Regex.PCRE(getVersion_Text_Regex_PCRE
+  ,module Text.Regex.Base
   -- ** Wrap, for '=~' and '=~~', types and constants
   ,module Text.Regex.PCRE.Wrap
   -- ** String, instances only
@@ -60,6 +61,7 @@ import Text.Regex.PCRE.Sequence()
 import Text.Regex.PCRE.ByteString()
 import Text.Regex.PCRE.ByteString.Lazy()
 import Data.Version(Version(..))
+import Text.Regex.Base
 
 getVersion_Text_Regex_PCRE :: Version
 getVersion_Text_Regex_PCRE =
