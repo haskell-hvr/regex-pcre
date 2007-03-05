@@ -155,7 +155,7 @@ instance RegexOptions Regex CompOption ExecOption where
            in match q x
 
 -- (=~~) ::(RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Monad m) => source1 -> source -> m target
-(=~~) x r = do (q :: Regex) <-  makeRegex r
+(=~~) x r = do (q :: Regex) <-  makeRegexM r
                matchM q x
 
 type PCRE_Extra = ()

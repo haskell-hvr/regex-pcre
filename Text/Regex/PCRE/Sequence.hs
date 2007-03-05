@@ -140,11 +140,11 @@ withSeq s f =
 withSeq0 :: Seq Char -> (CString -> IO a) -> IO a
 withSeq0 s f =
   let -- Ensure null at end of s
-      !s' = case viewr s of
-              EmptyR -> singleton '\0'
-              _ :> '\0' -> s
-              _ -> s |> '\0'
-      pokes !p !a = case viewl a of
-                      EmptyL -> return ()
-                      c :< a' -> poke p (castCharToCChar c) >> pokes (advancePtr p 1) a'
+      s' = case viewr s of                -- bang !s'
+             EmptyR -> singleton '\0'
+             _ :> '\0' -> s
+             _ -> s |> '\0'
+      pokes p a = case viewl a of         -- bang pokes !p !a
+                    EmptyL -> return ()
+                    c :< a' -> poke p (castCharToCChar c) >> pokes (advancePtr p 1) a'
   in allocaBytes (S.length s') (\ptr -> pokes ptr s' >> f ptr)
