@@ -47,7 +47,7 @@ module Text.Regex.PCRE.ByteString.Lazy(
 
 import Text.Regex.PCRE.Wrap -- all
 import Data.Array(Array)
-import qualified Data.ByteString.Lazy as L(ByteString,toChunks,fromChunks,last,snoc)
+import qualified Data.ByteString.Lazy as L(ByteString,toChunks,fromChunks,last,null,snoc)
 import qualified Data.ByteString as B(ByteString,concat)
 import qualified Data.ByteString.Base as B(unsafeUseAsCString,unsafeUseAsCStringLen)
 import System.IO.Unsafe(unsafePerformIO)
@@ -74,7 +74,7 @@ unwrap x = case x of Left err -> fail ("Text.Regex.PCRE.ByteString.Lazy died: "+
 
 {-# INLINE asCString #-}
 asCString :: L.ByteString -> (CString -> IO a) -> IO a
-asCString s = if (0==L.last s)
+asCString s = if (not (L.null s)) && (0==L.last s)
                 then B.unsafeUseAsCString (fromLazy s)
                 else B.unsafeUseAsCString (fromLazy (L.snoc s 0))
 

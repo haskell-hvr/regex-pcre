@@ -48,7 +48,7 @@ module Text.Regex.PCRE.ByteString(
 import Text.Regex.PCRE.Wrap -- all
 import Data.Array(Array,listArray)
 import Data.ByteString(ByteString)
-import qualified Data.ByteString as B(empty,useAsCString,last,take,drop)
+import qualified Data.ByteString as B(empty,useAsCString,last,take,drop,null)
 import qualified Data.ByteString.Base as B(unsafeUseAsCString,unsafeUseAsCStringLen)
 import System.IO.Unsafe(unsafePerformIO)
 import Text.Regex.Base.RegexLike(RegexContext(..),RegexMaker(..),RegexLike(..),MatchOffset,MatchLength)
@@ -90,9 +90,10 @@ compile :: CompOption  -- ^ (summed together)
         -> ByteString  -- ^ The regular expression to compile
         -> IO (Either (MatchOffset,String) Regex) -- ^ Returns: the compiled regular expression
 compile c e pattern = do
-  let asCString = if (0==B.last pattern)
-                    then B.unsafeUseAsCString
-                    else B.useAsCString
+  -- PCRE does not allow one to specify a length for the regular expression, it must by 0 terminated
+  let asCString bs = if (not (B.null bs)) && (0==B.last bs)
+                       then B.unsafeUseAsCString bs
+                       else B.useAsCString bs
   asCString pattern (wrapCompile c e)
 
 -- ---------------------------------------------------------------------
