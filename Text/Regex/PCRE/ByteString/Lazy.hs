@@ -48,13 +48,14 @@ module Text.Regex.PCRE.ByteString.Lazy(
 import Text.Regex.PCRE.Wrap -- all
 import Data.Array(Array)
 import qualified Data.ByteString.Lazy as L(ByteString,toChunks,fromChunks,last,null,snoc)
-import qualified Data.ByteString as B(ByteString,concat)
+import qualified Data.ByteString as B(ByteString,concat,pack)
 import qualified Data.ByteString.Base as B(unsafeUseAsCString,unsafeUseAsCStringLen)
 import System.IO.Unsafe(unsafePerformIO)
 import Text.Regex.Base.RegexLike(RegexContext(..),RegexMaker(..),RegexLike(..),MatchOffset,MatchLength)
 import Text.Regex.Base.Impl(polymatch,polymatchM)
 import qualified Text.Regex.PCRE.ByteString as BS(execute,regexec)
 import Foreign.C.String(CString,CStringLen)
+import Foreign(nullPtr)
 
 instance RegexContext Regex L.ByteString L.ByteString where
   match = polymatch
@@ -80,7 +81,11 @@ asCString s = if (not (L.null s)) && (0==L.last s)
 
 {-# INLINE asCStringLen #-}
 asCStringLen :: L.ByteString -> (CStringLen -> IO a) -> IO a
-asCStringLen s = B.unsafeUseAsCStringLen (fromLazy s)
+asCStringLen ls op = B.unsafeUseAsCStringLen (fromLazy ls) checked
+  where checked cs@(ptr,_) | ptr == nullPtr = B.unsafeUseAsCStringLen myEmpty (op . trim)
+                           | otherwise = op cs
+        myEmpty = B.pack [0]
+        trim (ptr,_) = (ptr,0)
 
 instance RegexMaker Regex CompOption ExecOption L.ByteString where
   makeRegexOpts c e pattern = unsafePerformIO $
@@ -93,9 +98,9 @@ instance RegexLike Regex L.ByteString where
     asCStringLen bs (wrapTest 0 regex) >>= unwrap
   matchOnce regex bs = unsafePerformIO $
     execute regex bs >>= unwrap
-  matchAll regex bs = unsafePerformIO $ 
+  matchAll regex bs = unsafePerformIO $
     asCStringLen bs (wrapMatchAll regex) >>= unwrap
-  matchCount regex bs = unsafePerformIO $ 
+  matchCount regex bs = unsafePerformIO $
     asCStringLen bs (wrapCount regex) >>= unwrap
 
 -- ---------------------------------------------------------------------

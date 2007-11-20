@@ -48,12 +48,13 @@ module Text.Regex.PCRE.ByteString(
 import Text.Regex.PCRE.Wrap -- all
 import Data.Array(Array,listArray)
 import Data.ByteString(ByteString)
-import qualified Data.ByteString as B(empty,useAsCString,last,take,drop,null)
+import qualified Data.ByteString as B(empty,useAsCString,last,take,drop,null,pack)
 import qualified Data.ByteString.Base as B(unsafeUseAsCString,unsafeUseAsCStringLen)
 import System.IO.Unsafe(unsafePerformIO)
 import Text.Regex.Base.RegexLike(RegexContext(..),RegexMaker(..),RegexLike(..),MatchOffset,MatchLength)
 import Text.Regex.Base.Impl(polymatch,polymatchM)
 import Foreign.C.String(CStringLen)
+import Foreign(nullPtr)
 
 instance RegexContext Regex ByteString ByteString where
   match = polymatch
@@ -63,8 +64,13 @@ unwrap :: (Show e) => Either e v -> IO v
 unwrap x = case x of Left err -> fail ("Text.Regex.PCRE.ByteString died: "++ show err)
                      Right v -> return v
 
+{-# INLINE asCStringLen #-}
 asCStringLen :: ByteString -> (CStringLen -> IO a) -> IO a
-asCStringLen = B.unsafeUseAsCStringLen
+asCStringLen s op = B.unsafeUseAsCStringLen s checked
+  where checked cs@(ptr,_) | ptr == nullPtr = B.unsafeUseAsCStringLen myEmpty (op . trim)
+                           | otherwise = op cs
+        myEmpty = B.pack [0]
+        trim (ptr,_) = (ptr,0)
 
 instance RegexMaker Regex CompOption ExecOption ByteString where
   makeRegexOpts c e pattern = unsafePerformIO $
@@ -77,9 +83,9 @@ instance RegexLike Regex ByteString where
     asCStringLen bs (wrapTest 0 regex) >>= unwrap
   matchOnce regex bs = unsafePerformIO $
     execute regex bs >>= unwrap
-  matchAll regex bs = unsafePerformIO $ 
+  matchAll regex bs = unsafePerformIO $
     asCStringLen bs (wrapMatchAll regex) >>= unwrap
-  matchCount regex bs = unsafePerformIO $ 
+  matchCount regex bs = unsafePerformIO $
     asCStringLen bs (wrapCount regex) >>= unwrap
 
 -- ---------------------------------------------------------------------
@@ -111,7 +117,7 @@ execute regex bs = do
   maybeStartEnd <- asCStringLen bs (wrapMatch 0 regex)
   case maybeStartEnd of
     Right Nothing -> return (Right Nothing)
-    Right (Just parts) -> 
+    Right (Just parts) ->
       return . Right . Just . listArray (0,pred (length parts))
       . map (\(s,e)->(fromIntegral s, fromIntegral (e-s))) $ parts
     Left err -> return (Left err)
@@ -123,7 +129,7 @@ regexec regex bs = do
   let getSub (start,stop) | start == unusedOffset = B.empty
                           | otherwise = B.take (stop-start) . B.drop start $ bs
       matchedParts [] = (B.empty,B.empty,bs,[]) -- no information
-      matchedParts (matchedStartStop@(start,stop):subStartStop) = 
+      matchedParts (matchedStartStop@(start,stop):subStartStop) =
         (B.take start bs
         ,getSub matchedStartStop
         ,B.drop stop bs

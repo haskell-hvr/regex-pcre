@@ -1,5 +1,5 @@
 Name:                   regex-pcre
-Version:                0.92
+Version:                0.93
 -- Cabal-Version:       >=1.1.4
 License:                BSD3
 License-File:           LICENSE
@@ -30,7 +30,7 @@ Extensions:             MultiParamTypeClasses, FunctionalDependencies
 -- GHC-Options:            -Wall -Werror
 GHC-Options:            -Wall -Werror -O2
 -- GHC-Options:            -Wall -ddump-minimal-imports
--- GHC-Prof-Options: 
+-- GHC-Prof-Options:
 -- Hugs-Options:
 -- NHC-Options:
 -- C-Sources:
@@ -39,5 +39,5 @@ GHC-Options:            -Wall -Werror -O2
 -- Frameworks:
 CC-Options:             -DHAVE_PCRE_H
 Extra-Libraries:        pcre
--- Include-Dirs:           /opt/local/include
--- Extra-Lib-Dirs:         /opt/local/lib
+--Include-Dirs:           /opt/local/include
+--Extra-Lib-Dirs:         /opt/local/lib
