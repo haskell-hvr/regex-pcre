@@ -1,6 +1,6 @@
 Name:                   regex-pcre
 Version:                0.93
--- Cabal-Version:       >=1.1.4
+Cabal-Version:          >=1.2
 License:                BSD3
 License-File:           LICENSE
 Copyright:              Copyright (c) 2006, Christopher Kuklewicz
@@ -13,31 +13,38 @@ Synopsis:               Replaces/Enhances Text.Regex
 Description:            The PCRE backend to accompany regex-base, see www.pcre.org
 Category:               Text
 Tested-With:            GHC
-Build-Depends:          base >= 2.0, regex-base >= 0.80
--- Data-Files:
--- Extra-Source-Files:
--- Extra-Tmp-Files:
-Exposed-Modules:        Text.Regex.PCRE
-                        Text.Regex.PCRE.Wrap
-                        Text.Regex.PCRE.String
-                        Text.Regex.PCRE.Sequence
-                        Text.Regex.PCRE.ByteString
-                        Text.Regex.PCRE.ByteString.Lazy
-Buildable:              True
--- Other-Modules:
--- HS-Source-Dirs:         "."
-Extensions:             MultiParamTypeClasses, FunctionalDependencies
--- GHC-Options:            -Wall -Werror -O2
-GHC-Options:            -Wall -O2
--- GHC-Options:            -Wall -ddump-minimal-imports
--- GHC-Prof-Options:
--- Hugs-Options:
--- NHC-Options:
--- C-Sources:
--- Includes:
--- LD-Options:
--- Frameworks:
-CC-Options:             -DHAVE_PCRE_H
-Extra-Libraries:        pcre
---Include-Dirs:           /opt/local/include
---Extra-Lib-Dirs:         /opt/local/lib
+flag splitBase
+  description: Choose the new smaller, split-up base package.
+library
+  if flag(splitBase)
+    build-depends: base >= 3.0, regex-base >= 0.80, array, containers, bytestring
+    CPP-Options: "-DSPLIT_BASE=1"
+  else
+    build-depends: base < 3.0, regex-base >= 0.80
+  -- Data-Files:
+  -- Extra-Source-Files:
+  -- Extra-Tmp-Files:
+  Exposed-Modules:        Text.Regex.PCRE
+                          Text.Regex.PCRE.Wrap
+                          Text.Regex.PCRE.String
+                          Text.Regex.PCRE.Sequence
+                          Text.Regex.PCRE.ByteString
+                          Text.Regex.PCRE.ByteString.Lazy
+  Buildable:              True
+  -- Other-Modules:
+  -- HS-Source-Dirs:         "."
+  Extensions:             MultiParamTypeClasses, FunctionalDependencies, CPP
+  -- GHC-Options:            -Wall -Werror -O2
+  GHC-Options:            -Wall -O2
+  -- GHC-Options:            -Wall -ddump-minimal-imports
+  -- GHC-Prof-Options:
+  -- Hugs-Options:
+  -- NHC-Options:
+  -- C-Sources:
+  -- Includes:
+  -- LD-Options:
+  -- Frameworks:
+  CC-Options:             -DHAVE_PCRE_H
+  Extra-Libraries:        pcre
+  --Include-Dirs:           /opt/local/include
+  --Extra-Lib-Dirs:         /opt/local/lib
