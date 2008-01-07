@@ -38,15 +38,7 @@ returns error using Either structures.
 module Text.Regex.PCRE(getVersion_Text_Regex_PCRE
   ,module Text.Regex.Base
   -- ** Wrap, for '=~' and '=~~', types and constants
-  ,module Text.Regex.PCRE.Wrap
-  -- ** String, instances only
-  ,module Text.Regex.PCRE.String
-  -- ** Seq Char, instances only
-  ,module Text.Regex.PCRE.Sequence
-  -- ** ByteString, instances only
-  ,module Text.Regex.PCRE.ByteString
-  -- ** Lazy ByteString, instances only
-  ,module Text.Regex.PCRE.ByteString.Lazy) where
+  ,module Text.Regex.PCRE.Wrap) where
 
 import Text.Regex.PCRE.Wrap(Regex, CompOption(CompOption), ExecOption(ExecOption), (=~), (=~~),
   unusedOffset, getNumSubs, configUTF8, getVersion,
