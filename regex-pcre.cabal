@@ -1,7 +1,7 @@
 Name:                   regex-pcre
 -- Keep the Version below in sync with ./Text/Regex/PCRE.hs value getVersion_Text_Regex_PCRE :: Version
 Version:                0.94
-Cabal-Version:          >=1.2
+Cabal-Version:          >=1.2.3
 License:                BSD3
 License-File:           LICENSE
 Copyright:              Copyright (c) 2006, Christopher Kuklewicz
