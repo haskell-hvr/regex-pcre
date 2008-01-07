@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -fno-warn-orphans -fbang-patterns #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-|
 This exports instances of the high level API and the medium level
 API of 'compile','execute', and 'regexec'.
@@ -132,9 +132,11 @@ withSeq :: Seq Char -> (CStringLen -> IO a) -> IO a
 withSeq s f =
   let -- Ensure null at end of s
       len = S.length s
-      pokes !p !a = case viewl a of
-                      EmptyL -> return ()
-                      c :< a' -> poke p (castCharToCChar c) >> pokes (advancePtr p 1) a'
+      pokes p a | seq p (seq a False) = undefined
+                | otherwise =
+        case viewl a of
+          EmptyL -> return ()
+          c :< a' -> poke p (castCharToCChar c) >> pokes (advancePtr p 1) a'
   in allocaBytes (S.length s) (\ptr -> pokes ptr s >> f (ptr,len))
 
 withSeq0 :: Seq Char -> (CString -> IO a) -> IO a
@@ -144,7 +146,9 @@ withSeq0 s f =
              EmptyR -> singleton '\0'
              _ :> '\0' -> s
              _ -> s |> '\0'
-      pokes p a = case viewl a of         -- bang pokes !p !a
-                    EmptyL -> return ()
-                    c :< a' -> poke p (castCharToCChar c) >> pokes (advancePtr p 1) a'
+      pokes p a | seq p (seq a False) = undefined
+                | otherwise =
+        case viewl a of         -- bang pokes !p !a
+          EmptyL -> return ()
+          c :< a' -> poke p (castCharToCChar c) >> pokes (advancePtr p 1) a'
   in allocaBytes (S.length s') (\ptr -> pokes ptr s' >> f ptr)

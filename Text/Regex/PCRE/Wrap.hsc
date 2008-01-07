@@ -1,11 +1,12 @@
-{-# OPTIONS_GHC  -fglasgow-exts -fffi #-}
 -- The exported symbols are the same whether HAVE_PCRE_H is defined,
 -- but when if it is not defined then 'getVersion == Nothing' and all
 -- other exported values will call error or fail.
 
 -- | This will fail or error only if allocation fails or a nullPtr is passed in.
+
 -- TODO :: Consider wrapMatchAll using list of start/end offsets and not MatchArray
 --
+
 {- Copyright   :  (c) Chris Kuklewicz 2007 -}
 module Text.Regex.PCRE.Wrap(
   -- ** High-level interface

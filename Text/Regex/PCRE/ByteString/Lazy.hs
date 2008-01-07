@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-|
 This exports instances of the high level API and the medium level
 API of 'compile','execute', and 'regexec'.
