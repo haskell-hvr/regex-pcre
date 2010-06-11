@@ -215,7 +215,8 @@ getNumSubs' :: Ptr PCRE -> IO CInt
 getNumSubs' pcre_ptr =
   alloca $ \st -> do -- (st :: Ptr CInt)
     when (st == nullPtr) (fail "Text.Regex.PCRE.Wrap.getNumSubs' could not allocate a CInt!!!")
-    c_pcre_fullinfo pcre_ptr nullPtr pcreInfoCapturecount st
+    ok0 <- c_pcre_fullinfo pcre_ptr nullPtr pcreInfoCapturecount st
+    when (ok0 /= 0) (fail $ "Impossible/fatal: Haskell package regex-pcre error in Text.Posix.PCRE.Wrap.getNumSubs' of ok0 /= 0.  ok0 is from pcre_fullinfo c-function which returned  "++show ok0)
     peek st
 
 wrapTest startOffset (Regex pcre_fptr _ flags) (cstr,len) = do
@@ -338,7 +339,8 @@ getVersion = unsafePerformIO $ do
 configUTF8 = unsafePerformIO $
   alloca $ \ptrVal -> do -- (ptrVal :: Ptr CInt)
     when (ptrVal == nullPtr) (fail "Text.Regex.PCRE.Wrap.configUTF8 could not alloca CInt!!!")
-    c_pcre_config pcreConfigUtf8 ptrVal
+    _unicodeSupported <- c_pcre_config pcreConfigUtf8 ptrVal
+    {- pcre_config: The  output  is  an  integer that is set to one if UTF-8 support is available; otherwise it is set to zero. -}
     val <- peek ptrVal
     case val of
       (1 :: CInt) -> return True
