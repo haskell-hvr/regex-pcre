@@ -1,6 +1,6 @@
 Name:                   regex-pcre
 -- Keep the Version below in sync with ./Text/Regex/PCRE.hs value getVersion_Text_Regex_PCRE :: Version
-Version:                0.94.2
+Version:                0.94.3
 Cabal-Version:          >=1.2.3
 License:                BSD3
 License-File:           LICENSE
@@ -23,7 +23,7 @@ flag splitBase
   default: True
 library
   if flag(newBase)
-    Build-Depends: base >= 4, regex-base >= 0.93, array, containers, bytestring
+    Build-Depends: base >= 4 && < 5, regex-base >= 0.93, array, containers, bytestring
     -- Need the next symbol for using CPP to get Data.ByteString.Base|Unsafe in
     --  ./Text/Regex/Posix/ByteString.hs and  ./Text/Regex/Posix/ByteString/Lazy.hs
     CPP-Options: "-DSPLIT_BASE=1"
@@ -34,7 +34,7 @@ library
       -- Need the next symbol for using CPP to get Data.ByteString.Base|Unsafe in
       --  ./Text/Regex/Posix/ByteString.hs and  ./Text/Regex/Posix/ByteString/Lazy.hs
       CPP-Options: "-DSPLIT_BASE=1"
-      Extensions:    MultiParamTypeClasses, FunctionalDependencies, CPP, ForeignFunctionInterface, PatternSignatures, GeneralizedNewtypeDeriving, FlexibleContexts, TypeSynonymInstances, FlexibleInstances
+      Extensions:    MultiParamTypeClasses, FunctionalDependencies, CPP, ForeignFunctionInterface, ScopedTypeVariables, GeneralizedNewtypeDeriving, FlexibleContexts, TypeSynonymInstances, FlexibleInstances
     else
       Build-Depends: base < 3.0, regex-base >= 0.93
       Extensions:    MultiParamTypeClasses, FunctionalDependencies, CPP
@@ -64,5 +64,5 @@ library
   -- anyway.  The resulting regex-posix will exist, but throw errors.
   CC-Options:             -DHAVE_PCRE_H
   Extra-Libraries:        pcre
-  --Include-Dirs:           /opt/local/include
-  --Extra-Lib-Dirs:         /opt/local/lib
+  Include-Dirs:           /opt/local/include
+  Extra-Lib-Dirs:         /opt/local/lib

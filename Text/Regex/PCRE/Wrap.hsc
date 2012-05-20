@@ -73,12 +73,17 @@ module Text.Regex.PCRE.Wrap(
 import Control.Monad(when)
 import Data.Array(Array,accumArray)
 import Data.Bits(Bits((.|.))) -- ((.&.),(.|.),complement))
-import Foreign(unsafePerformIO
-              ,Ptr,ForeignPtr,FinalizerPtr -- ,FunPtr
+import System.IO.Unsafe(unsafePerformIO)
+import Foreign(Ptr,ForeignPtr,FinalizerPtr -- ,FunPtr
               ,alloca,allocaBytes,nullPtr
               ,peek,peekElemOff
               ,newForeignPtr,withForeignPtr)
-import Foreign.C(CInt,CChar)
+import Foreign.C(CChar)
+#if __GLASGOW_HASKELL__ >= 703
+import Foreign.C(CInt(CInt))
+#else
+import Foreign.C(CInt)
+#endif
 import Foreign.C.String(CString,CStringLen,peekCString)
 import Text.Regex.Base.RegexLike(RegexOptions(..),RegexMaker(..),RegexContext(..),MatchArray,MatchOffset)
 #else
