@@ -69,6 +69,9 @@ module Text.Regex.PCRE.Wrap(
   retNoSubstring
   ) where
 
+import Prelude hiding (fail)
+import Control.Monad.Fail (MonadFail(fail))
+
 #if defined(HAVE_PCRE_H)
 import Control.Monad(when)
 import Data.Array(Array,accumArray)
@@ -94,7 +97,6 @@ import Foreign.C(CInt)
 import Foreign.C.String(CString,CStringLen)
 import Text.Regex.Base.RegexLike(RegexOptions(..),RegexMaker(..),RegexContext(..),MatchArray,MatchOffset)
 #endif
-
 
 -- | return version of pcre used or Nothing if pcre is not available.
 getVersion :: Maybe String
@@ -140,7 +142,7 @@ configUTF8 :: Bool
 
 (=~)  :: (RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target)
       => source1 -> source -> target
-(=~~) :: (RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Monad m)
+(=~~) :: (RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,MonadFail m)
       => source1 -> source -> m target
 
 #if defined(HAVE_PCRE_H)
@@ -160,7 +162,7 @@ instance RegexOptions Regex CompOption ExecOption where
                q = makeRegex r
            in match q x
 
--- (=~~) ::(RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Monad m) => source1 -> source -> m target
+-- (=~~) ::(RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,MonadFail m) => source1 -> source -> m target
 (=~~) x r = do (q :: Regex) <-  makeRegexM r
                matchM q x
 

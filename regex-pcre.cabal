@@ -1,6 +1,6 @@
 Cabal-Version:          1.12
 Name:                   regex-pcre
-Version:                0.94.4.1
+Version:                0.95.0.0
 
 build-type:             Simple
 license:                BSD3
@@ -45,11 +45,14 @@ library
       TypeSynonymInstances
       FlexibleInstances
 
-  build-depends: regex-base == 0.93.*
-               , base       >= 4.3 && < 4.13
+  build-depends: regex-base == 0.94.*
+               , base       >= 4.3 && < 4.14
                , containers >= 0.4 && < 0.7
                , bytestring >= 0.9 && < 0.11
                , array      >= 0.3 && < 0.6
+
+  if !impl(ghc >= 8)
+      build-depends: fail == 4.9.*
 
   if flag(pkg-config)
     pkgconfig-depends: libpcre
@@ -57,5 +60,5 @@ library
     extra-libraries: pcre
 
   ghc-options: -O2
-               -Wall
+               -Wall -fno-warn-unused-imports
   cc-options:  -DHAVE_PCRE_H
