@@ -54,9 +54,10 @@ import Text.Regex.PCRE.ByteString()
 import Text.Regex.PCRE.ByteString.Lazy()
 import Data.Version(Version(..))
 import Text.Regex.Base
+import qualified Paths_regex_pcre
 
 getVersion_Text_Regex_PCRE :: Version
 getVersion_Text_Regex_PCRE =
-  Version { versionBranch = [0,94,2]  -- Keep in sync with regex-pcre.cabal
+  Version { versionBranch = versionBranch Paths_regex_pcre.version
           , versionTags = ["unstable"]
           }

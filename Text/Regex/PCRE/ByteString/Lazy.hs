@@ -49,11 +49,7 @@ import Text.Regex.PCRE.Wrap -- all
 import Data.Array(Array)
 import qualified Data.ByteString.Lazy as L(ByteString,toChunks,fromChunks,last,null,snoc)
 import qualified Data.ByteString as B(ByteString,concat,pack)
-#ifdef SPLIT_BASE
 import qualified Data.ByteString.Unsafe as B(unsafeUseAsCString,unsafeUseAsCStringLen)
-#else
-import qualified Data.ByteString.Base as B(unsafeUseAsCString,unsafeUseAsCStringLen)
-#endif
 import System.IO.Unsafe(unsafePerformIO)
 import Text.Regex.Base.RegexLike(RegexContext(..),RegexMaker(..),RegexLike(..),MatchOffset,MatchLength)
 import Text.Regex.Base.Impl(polymatch,polymatchM)
