@@ -17,6 +17,11 @@ description:
 extra-source-files:
   ChangeLog.md
 
+flag pkg-config
+  default:     True
+  manual:      True
+  description: Use @pkg-config(1)@ to locate foreign @zlib@ library.
+
 library
   exposed-modules:
       Text.Regex.PCRE
@@ -46,7 +51,10 @@ library
                , bytestring >= 0.9 && < 0.11
                , array      >= 0.3 && < 0.6
 
-  extra-libraries: pcre
+  if flag(pkg-config)
+    pkgconfig-depends: libpcre
+  else
+    extra-libraries: pcre
 
   ghc-options: -O2
                -Wall
