@@ -62,4 +62,3 @@ library
 
   ghc-options: -O2
                -Wall -fno-warn-unused-imports
-  cc-options:  -DHAVE_PCRE_H
