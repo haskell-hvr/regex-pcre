@@ -9,10 +9,13 @@ copyright:              Copyright (c) 2006, Christopher Kuklewicz
 author:                 Christopher Kuklewicz
 maintainer:             hvr@gnu.org
 bug-reports:            https://github.com/hvr/regex-pcre/issues
-synopsis:               Replaces/Enhances Text.Regex
 category:               Text
+
+synopsis:    PCRE Backend for "Text.Regex" (regex-base)
 description:
-  <http://pcre.org/ PCRE> backend for <//hackage.haskell.org/package/regex-base regex-base>
+  This package provides a <http://pcre.org/ PCRE> backend for the <//hackage.haskell.org/package/regex-base regex-base> API.
+  .
+  See also <https://wiki.haskell.org/Regular_expressions> for more information.
 
 extra-source-files:
   ChangeLog.md
