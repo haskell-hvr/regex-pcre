@@ -5,5 +5,6 @@ See also http://pvp.haskell.org/faq
 - Update to `regex-0.94.0.0` API
 - Compatibility with `base-4.13.0`
 - Use `pkg-config` for locating `pcre`
+- New `Text.Regex.PCRE.Text` & `Text.Regex.PCRE.Text.Lazy` modules (merged from `regex-pcre-text` package)
 
 ----
