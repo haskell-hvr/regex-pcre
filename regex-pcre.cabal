@@ -25,6 +25,10 @@ flag pkg-config
   manual:      True
   description: Use @pkg-config(1)@ to locate foreign @zlib@ library.
 
+source-repository head
+  type:     git
+  location: https://github.com/hvr/regex-pcre.git
+
 library
   hs-source-dirs: src
   exposed-modules:
