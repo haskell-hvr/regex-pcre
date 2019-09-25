@@ -8,7 +8,7 @@ license-file:           LICENSE
 copyright:              Copyright (c) 2006, Christopher Kuklewicz
 author:                 Christopher Kuklewicz
 maintainer:             hvr@gnu.org
-bug-reports:            https://github.com/hvr/regex-pcre
+bug-reports:            https://github.com/hvr/regex-pcre/issues
 synopsis:               Replaces/Enhances Text.Regex
 category:               Text
 description:
@@ -23,6 +23,7 @@ flag pkg-config
   description: Use @pkg-config(1)@ to locate foreign @zlib@ library.
 
 library
+  hs-source-dirs: src
   exposed-modules:
       Text.Regex.PCRE
       Text.Regex.PCRE.Wrap
