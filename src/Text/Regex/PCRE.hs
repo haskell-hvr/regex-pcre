@@ -44,6 +44,8 @@ import Text.Regex.PCRE.String()
 import Text.Regex.PCRE.Sequence()
 import Text.Regex.PCRE.ByteString()
 import Text.Regex.PCRE.ByteString.Lazy()
+import Text.Regex.PCRE.Text()
+import Text.Regex.PCRE.Text.Lazy()
 import Data.Version(Version(..))
 import Text.Regex.Base
 import qualified Paths_regex_pcre
