@@ -23,7 +23,7 @@ extra-source-files:
 flag pkg-config
   default:     True
   manual:      True
-  description: Use @pkg-config(1)@ to locate foreign @zlib@ library.
+  description: Use @pkg-config(1)@ to locate foreign @pcre@ library.
 
 source-repository head
   type:     git
