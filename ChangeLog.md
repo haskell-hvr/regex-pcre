@@ -1,5 +1,9 @@
 See also http://pvp.haskell.org/faq
 
+## 0.95.0.0 revision 3
+
+- Compatibility with `base-4.16` (GHC 9.2)
+
 ## 0.95.0.0 revision 2
 
 - Compatibility with `base-4.15` (GHC 9.0) and `bytestring-0.11`
