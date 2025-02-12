@@ -10,7 +10,7 @@ module Text.Regex.PCRE.ByteString(
   MatchOffset,
   MatchLength,
   CompOption(CompOption),
-  ExecOption(ExecOption),
+  MatchOption(MatchOption),
   ReturnCode,
   WrapError,
   -- ** Miscellaneous
@@ -23,26 +23,45 @@ module Text.Regex.PCRE.ByteString(
   -- ** CompOption flags
   compBlank,
   compAnchored,
+  compEndAnchored, -- new in v1.0.0.0 (pcre2)
+  compAllowEmptyClass, -- new in v1.0.0.0 (pcre2)
+  compAltBSUX, -- new in v1.0.0.0 (pcre2)
+  compAltExtendedClass, -- new in v1.0.0.0 (pcre2)
+  compAltVerbnames, -- new in v1.0.0.0 (pcre2)
   compAutoCallout,
   compCaseless,
   compDollarEndOnly,
   compDotAll,
+  compDupNames, -- new in v1.0.0.0 (pcre2)
   compExtended,
-  compExtra,
+  compExtendedMore, -- new in v1.0.0.0 (pcre2)
+--   compExtra, -- obsoleted in v1.0.0.0, pcre2 is always strict in this way
   compFirstLine,
+  compLiteral, -- new in v1.0.0.0 (pcre2)
+  compMatchUnsetBackref, -- new in v1.0.0.0 (pcre2)
   compMultiline,
+  compNeverBackslashC, -- new in v1.0.0.0 (pcre2)
   compNoAutoCapture,
+  compNoAutoPossess, -- new in v1.0.0.0 (pcre2)
+  compNoDotstarAnchor, -- new in v1.0.0.0 (pcre2)
+--   compNoUTF8Check, -- obsoleted in v1.0.0.0 (pcre2), use compNoUTFCheck
+  compNoUTFCheck,
   compUngreedy,
-  compUTF8,
-  compNoUTF8Check,
-  -- ** ExecOption flags
-  execBlank,
-  execAnchored,
-  execNotBOL,
-  execNotEOL,
-  execNotEmpty,
-  execNoUTF8Check,
-  execPartial
+--   compUTF8, -- obsoleted in v1.0.0.0 (pcre2), use compUTF
+  compUTF,
+  -- ** MatchOption flags, new to v1.0.0.0 (pcre2), replacing the obsolete ExecOptions
+  matchBlank,
+  matchAnchored,
+  matchCopyMatchedSubject, -- new in v1.0.0.0 (pcre2)
+  matchDisableRecurseLoopCheck, -- new in v1.0.0.0 (pcre2)
+  matchEndAnchored, -- new in v1.0.0.0 (pcre2)
+  matchNotBOL,
+  matchNotEOL,
+  matchNotEmpty,
+  matchNotEmptyAtStart, -- new in v1.0.0.0 (pcre2)
+  matchNoUTFCheck,
+  matchPartialHard,
+  matchPartialSoft
   ) where
 
 import Prelude hiding (fail)
@@ -51,8 +70,8 @@ import Control.Monad.Fail (MonadFail(fail))
 import Text.Regex.PCRE.Wrap -- all
 import Data.Array(Array,listArray)
 import Data.ByteString(ByteString)
-import qualified Data.ByteString as B(empty,useAsCString,last,take,drop,null,pack)
-import qualified Data.ByteString.Unsafe as B(unsafeUseAsCString,unsafeUseAsCStringLen)
+import qualified Data.ByteString as B(empty,take,drop,pack)
+import qualified Data.ByteString.Unsafe as B(unsafeUseAsCStringLen)
 import System.IO.Unsafe(unsafePerformIO)
 import Text.Regex.Base.RegexLike(RegexContext(..),RegexMaker(..),RegexLike(..),MatchOffset,MatchLength)
 import Text.Regex.Base.Impl(polymatch,polymatchM)
@@ -75,7 +94,7 @@ asCStringLen s op = B.unsafeUseAsCStringLen s checked
         myEmpty = B.pack [0]
         trim (ptr,_) = (ptr,0)
 
-instance RegexMaker Regex CompOption ExecOption ByteString where
+instance RegexMaker Regex CompOption MatchOption ByteString where
   makeRegexOpts c e pattern = unsafePerformIO $
     compile c e pattern >>= unwrap
   makeRegexOptsM c e pattern = either (fail.show) return $ unsafePerformIO $
@@ -95,15 +114,10 @@ instance RegexLike Regex ByteString where
 -- | Compiles a regular expression
 --
 compile :: CompOption  -- ^ (summed together)
-        -> ExecOption  -- ^ (summed together)
+        -> MatchOption -- ^ (summed together)
         -> ByteString  -- ^ The regular expression to compile
         -> IO (Either (MatchOffset,String) Regex) -- ^ Returns: the compiled regular expression
-compile c e pattern = do
-  -- PCRE does not allow one to specify a length for the regular expression, it must by 0 terminated
-  let asCString bs = if (not (B.null bs)) && (0==B.last bs)
-                       then B.unsafeUseAsCString bs
-                       else B.useAsCString bs
-  asCString pattern (wrapCompile c e)
+compile c e pattern = B.unsafeUseAsCStringLen pattern (wrapCompile c e)
 
 -- ---------------------------------------------------------------------
 -- | Matches a regular expression against a buffer, returning the buffer

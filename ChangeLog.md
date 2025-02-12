@@ -1,5 +1,9 @@
 See also http://pvp.haskell.org/faq
 
+## 1.0.0.0
+
+- Migrate from the obsolete pcre3 library to the new (confusingly-named) pcre2 one
+
 ## 0.95.0.0 revision 6
 
 - Allow `containers-0.7`
