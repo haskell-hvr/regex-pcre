@@ -10,7 +10,7 @@ module Text.Regex.PCRE.ByteString.Lazy(
   MatchOffset,
   MatchLength,
   CompOption(CompOption),
-  ExecOption(ExecOption),
+  MatchOption(MatchOption),
   ReturnCode,
   WrapError,
   -- ** Miscellaneous
@@ -23,26 +23,45 @@ module Text.Regex.PCRE.ByteString.Lazy(
   -- ** CompOption flags
   compBlank,
   compAnchored,
+  compEndAnchored, -- new in v1.0.0.0 (pcre2)
+  compAllowEmptyClass, -- new in v1.0.0.0 (pcre2)
+  compAltBSUX, -- new in v1.0.0.0 (pcre2)
+  compAltExtendedClass, -- new in v1.0.0.0 (pcre2)
+  compAltVerbnames, -- new in v1.0.0.0 (pcre2)
   compAutoCallout,
   compCaseless,
   compDollarEndOnly,
   compDotAll,
+  compDupNames, -- new in v1.0.0.0 (pcre2)
   compExtended,
-  compExtra,
+  compExtendedMore, -- new in v1.0.0.0 (pcre2)
+--   compExtra, -- obsoleted in v1.0.0.0, pcre2 is always strict in this way
   compFirstLine,
+  compLiteral, -- new in v1.0.0.0 (pcre2)
+  compMatchUnsetBackref, -- new in v1.0.0.0 (pcre2)
   compMultiline,
+  compNeverBackslashC, -- new in v1.0.0.0 (pcre2)
   compNoAutoCapture,
+  compNoAutoPossess, -- new in v1.0.0.0 (pcre2)
+  compNoDotstarAnchor, -- new in v1.0.0.0 (pcre2)
+--   compNoUTF8Check, -- obsoleted in v1.0.0.0 (pcre2), use compNoUTFCheck
+  compNoUTFCheck,
   compUngreedy,
-  compUTF8,
-  compNoUTF8Check,
-  -- ** ExecOption flags
-  execBlank,
-  execAnchored,
-  execNotBOL,
-  execNotEOL,
-  execNotEmpty,
-  execNoUTF8Check,
-  execPartial
+--   compUTF8, -- obsoleted in v1.0.0.0 (pcre2), use compUTF
+  compUTF,
+  -- ** MatchOption flags, new to v1.0.0.0 (pcre2), replacing the obsolete ExecOptions
+  matchBlank,
+  matchAnchored,
+  matchCopyMatchedSubject, -- new in v1.0.0.0 (pcre2)
+  matchDisableRecurseLoopCheck, -- new in v1.0.0.0 (pcre2)
+  matchEndAnchored, -- new in v1.0.0.0 (pcre2)
+  matchNotBOL,
+  matchNotEOL,
+  matchNotEmpty,
+  matchNotEmptyAtStart, -- new in v1.0.0.0 (pcre2)
+  matchNoUTFCheck,
+  matchPartialHard,
+  matchPartialSoft
   ) where
 
 import Prelude hiding (fail)
@@ -50,14 +69,14 @@ import Control.Monad.Fail (MonadFail(fail))
 
 import Text.Regex.PCRE.Wrap -- all
 import Data.Array(Array)
-import qualified Data.ByteString.Lazy as L(ByteString,toChunks,fromChunks,last,null,snoc)
+import qualified Data.ByteString.Lazy as L(ByteString,toChunks,fromChunks)
 import qualified Data.ByteString as B(ByteString,concat,pack)
-import qualified Data.ByteString.Unsafe as B(unsafeUseAsCString,unsafeUseAsCStringLen)
+import qualified Data.ByteString.Unsafe as B(unsafeUseAsCStringLen)
 import System.IO.Unsafe(unsafePerformIO)
 import Text.Regex.Base.RegexLike(RegexContext(..),RegexMaker(..),RegexLike(..),MatchOffset,MatchLength)
 import Text.Regex.Base.Impl(polymatch,polymatchM)
 import qualified Text.Regex.PCRE.ByteString as BS(execute,regexec)
-import Foreign.C.String(CString,CStringLen)
+import Foreign.C.String(CStringLen)
 import Foreign(nullPtr)
 
 instance RegexContext Regex L.ByteString L.ByteString where
@@ -76,12 +95,6 @@ unwrap :: (Show e) => Either e v -> IO v
 unwrap x = case x of Left err -> fail ("Text.Regex.PCRE.ByteString.Lazy died: "++ show err)
                      Right v -> return v
 
-{-# INLINE asCString #-}
-asCString :: L.ByteString -> (CString -> IO a) -> IO a
-asCString s = if (not (L.null s)) && (0==L.last s)
-                then B.unsafeUseAsCString (fromLazy s)
-                else B.unsafeUseAsCString (fromLazy (L.snoc s 0))
-
 {-# INLINE asCStringLen #-}
 asCStringLen :: L.ByteString -> (CStringLen -> IO a) -> IO a
 asCStringLen ls op = B.unsafeUseAsCStringLen (fromLazy ls) checked
@@ -90,7 +103,7 @@ asCStringLen ls op = B.unsafeUseAsCStringLen (fromLazy ls) checked
         myEmpty = B.pack [0]
         trim (ptr,_) = (ptr,0)
 
-instance RegexMaker Regex CompOption ExecOption L.ByteString where
+instance RegexMaker Regex CompOption MatchOption L.ByteString where
   makeRegexOpts c e pattern = unsafePerformIO $
     compile c e pattern >>= unwrap
   makeRegexOptsM c e pattern = either (fail.show) return $ unsafePerformIO $
@@ -109,19 +122,18 @@ instance RegexLike Regex L.ByteString where
 -- ---------------------------------------------------------------------
 -- | Compiles a regular expression
 --
-compile :: CompOption  -- ^ (summed together)
-        -> ExecOption  -- ^ (summed together)
-        -> L.ByteString  -- ^ The regular expression to compile
+compile :: CompOption   -- ^ (summed together)
+        -> MatchOption  -- ^ (summed together)
+        -> L.ByteString -- ^ The regular expression to compile
         -> IO (Either (MatchOffset,String) Regex) -- ^ Returns: the compiled regular expression
-compile c e pattern = do
-  asCString pattern (wrapCompile c e)
+compile c e pattern = B.unsafeUseAsCStringLen (fromLazy pattern) (wrapCompile c e)
 
 -- ---------------------------------------------------------------------
 -- | Matches a regular expression against a buffer, returning the buffer
 -- indicies of the match, and any submatches
 --
 -- | Matches a regular expression against a string
-execute :: Regex      -- ^ Compiled regular expression
+execute :: Regex        -- ^ Compiled regular expression
         -> L.ByteString -- ^ String to match against
         -> IO (Either WrapError (Maybe (Array Int (MatchOffset,MatchLength))))
                 -- ^ Returns: 'Nothing' if the regex did not match the
