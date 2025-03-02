@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 {-|
 This exports instances of the high level API and the medium level
 API of 'compile','execute', and 'regexec'.
@@ -45,7 +45,16 @@ module Text.Regex.PCRE.ByteString(
   execPartial
   ) where
 
-import Prelude hiding (fail)
+import Prelude
+  ( Either(Left,Right), either
+  , Int, (-), fromIntegral, pred
+  , IO, (>>=), return
+  , Maybe(Nothing,Just)
+  , Show(show)
+  , String
+  , ($), (.), (==), (&&), otherwise, not
+  , (++), map, length
+  )
 import Control.Monad.Fail (MonadFail(fail))
 
 import Text.Regex.PCRE.Wrap -- all

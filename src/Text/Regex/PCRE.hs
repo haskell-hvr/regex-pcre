@@ -30,7 +30,7 @@ module Text.Regex.PCRE(getVersion_Text_Regex_PCRE
   -- ** Wrap, for '=~' and '=~~', types and constants
   ,module Text.Regex.PCRE.Wrap) where
 
-import Prelude hiding (fail)
+import Prelude ()
 
 import Text.Regex.PCRE.Wrap(Regex, CompOption(CompOption), ExecOption(ExecOption), (=~), (=~~),
   unusedOffset, getNumSubs, configUTF8, getVersion,
@@ -44,7 +44,7 @@ import Text.Regex.PCRE.String()
 import Text.Regex.PCRE.Sequence()
 import Text.Regex.PCRE.ByteString()
 import Text.Regex.PCRE.ByteString.Lazy()
-import Data.Version(Version(..))
+import Data.Version(Version)
 import Text.Regex.Base
 import qualified Paths_regex_pcre
 

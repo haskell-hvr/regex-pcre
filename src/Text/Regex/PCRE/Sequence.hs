@@ -45,7 +45,19 @@ module Text.Regex.PCRE.Sequence(
   execPartial
   ) where
 
-import Prelude hiding (fail)
+import Prelude
+  ( Bool(False)
+  , Char
+  , Either(Left,Right), either
+  , IO, (>>), (>>=), return
+  , Int, (-), fromIntegral, pred
+  , Maybe(Nothing,Just)
+  , Show(show)
+  , String
+  , ($), (.), seq, undefined
+  , (==), otherwise
+  , (++), length, map
+  )
 import Control.Monad.Fail (MonadFail(fail))
 
 import Text.Regex.PCRE.Wrap -- all
@@ -54,12 +66,20 @@ import Data.Array(Array,listArray)
 import System.IO.Unsafe(unsafePerformIO)
 import Text.Regex.Base.RegexLike(RegexMaker(..),RegexLike(..),RegexContext(..),MatchLength,MatchOffset,Extract(..))
 import Text.Regex.Base.Impl(polymatch,polymatchM)
-import Data.Sequence as S hiding (length)
+import Data.Sequence as S
+    ( Seq,
+      empty,
+      singleton,
+      viewl,
+      viewr,
+      (|>),
+      ViewL((:<), EmptyL),
+      ViewR((:>), EmptyR) )
 import qualified Data.Sequence as S (length)
-import Foreign.C.String
-import Foreign.Marshal.Array
-import Foreign.Marshal.Alloc
-import Foreign.Storable
+import Foreign.C.String ( castCharToCChar, CString, CStringLen )
+import Foreign.Marshal.Array ( advancePtr )
+import Foreign.Marshal.Alloc ( allocaBytes )
+import Foreign.Storable ( Storable(poke) )
 
 instance RegexContext Regex (Seq Char) (Seq Char) where
   match = polymatch
@@ -80,9 +100,9 @@ instance RegexLike Regex (Seq Char) where
     withSeq str (wrapTest 0 regex) >>= unwrap
   matchOnce regex str = unsafePerformIO $
     execute regex str >>= unwrap
-  matchAll regex str = unsafePerformIO $ 
+  matchAll regex str = unsafePerformIO $
     withSeq str (wrapMatchAll regex) >>= unwrap
-  matchCount regex str = unsafePerformIO $ 
+  matchCount regex str = unsafePerformIO $
     withSeq str (wrapCount regex) >>= unwrap
 
 -- | Compiles a regular expression
@@ -104,7 +124,7 @@ execute regex str = do
   case maybeStartEnd of
     Right Nothing -> return (Right Nothing)
 --  Right (Just []) -> fail "got [] back!" -- should never happen
-    Right (Just parts) -> 
+    Right (Just parts) ->
       return . Right . Just . listArray (0,pred (length parts))
       . map (\(s,e)->(fromIntegral s, fromIntegral (e-s))) $ parts
     Left err -> return (Left err)
@@ -119,7 +139,7 @@ regexec regex str = do
   let getSub (start,stop) | start == unusedOffset = S.empty
                           | otherwise = extract (start,stop-start) str
       matchedParts [] = (S.empty,S.empty,str,[]) -- no information
-      matchedParts (matchedStartStop@(start,stop):subStartStop) = 
+      matchedParts (matchedStartStop@(start,stop):subStartStop) =
         (before start str
         ,getSub matchedStartStop
         ,after stop str

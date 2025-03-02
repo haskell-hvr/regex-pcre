@@ -45,7 +45,16 @@ module Text.Regex.PCRE.String(
   execPartial
   ) where
 
-import Prelude hiding (fail)
+import Prelude
+  ( Either(Left,Right), either
+  , Int, (-), fromIntegral, pred
+  , IO, (>>=), return
+  , Maybe(Nothing,Just)
+  , Show(show)
+  , String
+  , ($), (.), (==), otherwise
+  , (++), drop, length, map, take
+  )
 import Control.Monad.Fail (MonadFail(fail))
 
 import Text.Regex.PCRE.Wrap -- all
@@ -74,9 +83,9 @@ instance RegexLike Regex String where
     withCStringLen str (wrapTest 0 regex) >>= unwrap
   matchOnce regex str = unsafePerformIO $
     execute regex str >>= unwrap
-  matchAll regex str = unsafePerformIO $ 
+  matchAll regex str = unsafePerformIO $
     withCStringLen str (wrapMatchAll regex) >>= unwrap
-  matchCount regex str = unsafePerformIO $ 
+  matchCount regex str = unsafePerformIO $
     withCStringLen str (wrapCount regex) >>= unwrap
 
 -- | Compiles a regular expression
@@ -98,7 +107,7 @@ execute regex str = do
   case maybeStartEnd of
     Right Nothing -> return (Right Nothing)
 --  Right (Just []) -> fail "got [] back!" -- should never happen
-    Right (Just parts) -> 
+    Right (Just parts) ->
       return . Right . Just . listArray (0,pred (length parts))
       . map (\(s,e)->(fromIntegral s, fromIntegral (e-s))) $ parts
     Left err -> return (Left err)
@@ -113,7 +122,7 @@ regexec regex str = do
   let getSub (start,stop) | start == unusedOffset = ""
                           | otherwise = take (stop-start) . drop start $ str
       matchedParts [] = ("","",str,[]) -- no information
-      matchedParts (matchedStartStop@(start,stop):subStartStop) = 
+      matchedParts (matchedStartStop@(start,stop):subStartStop) =
         (take start str
         ,getSub matchedStartStop
         ,drop stop str

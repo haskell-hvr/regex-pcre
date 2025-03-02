@@ -69,23 +69,31 @@ module Text.Regex.PCRE.Wrap(
   retNoSubstring
   ) where
 
-import Prelude hiding (fail)
+import Prelude
+  ( Bool(False,True)
+  , Either(Left,Right)
+  , Eq, (==), (/=), (<)
+  , IO, (=<<), return
+  , Integral, Int, (*), (-), fromIntegral, succ
+  , Maybe(Nothing,Just)
+  , Num((+))
+  , Show(show)
+  , String
+  , ($), (.), id, error, seq, undefined, otherwise
+  , (++), mapM, replicate, zip
+  )
 import Control.Monad.Fail (MonadFail(fail))
 
 import Control.Monad(when)
 import Data.Array(Array,accumArray)
-import Data.Bits(Bits((.|.))) -- ((.&.),(.|.),complement))
+import Data.Bits(Bits((.|.)))
 import System.IO.Unsafe(unsafePerformIO)
-import Foreign(Ptr,ForeignPtr,FinalizerPtr -- ,FunPtr
+import Foreign(Ptr,ForeignPtr,FinalizerPtr
               ,alloca,allocaBytes,nullPtr
               ,peek,peekElemOff
               ,newForeignPtr,withForeignPtr)
 import Foreign.C(CChar)
-#if __GLASGOW_HASKELL__ >= 703
 import Foreign.C(CInt(CInt))
-#else
-import Foreign.C(CInt)
-#endif
 import Foreign.C.String(CString,CStringLen,peekCString)
 import Text.Regex.Base.RegexLike(RegexOptions(..),RegexMaker(..),RegexContext(..),MatchArray,MatchOffset)
 
@@ -181,14 +189,14 @@ nullTest' :: Ptr a -> String -> IO (Either (MatchOffset,String) b) -> IO (Either
 {-# INLINE nullTest' #-}
 nullTest' ptr msg io = do
   if nullPtr == ptr
-    then return (Left (0,"Ptr parameter was nullPtr in Text.Regex.PCRE.Wrap."++msg)) 
+    then return (Left (0,"Ptr parameter was nullPtr in Text.Regex.PCRE.Wrap."++msg))
     else io
 
 nullTest :: Ptr a -> String -> IO (Either WrapError b) -> IO (Either WrapError b)
 {-# INLINE nullTest #-}
 nullTest ptr msg io = do
   if nullPtr == ptr
-    then return (Left (retOk,"Ptr parameter was nullPtr in Text.Regex.PCRE.Wrap."++msg)) 
+    then return (Left (retOk,"Ptr parameter was nullPtr in Text.Regex.PCRE.Wrap."++msg))
     else io
 
 wrapRC :: ReturnCode -> IO (Either WrapError b)
@@ -264,8 +272,8 @@ wrapMatch startOffset (Regex pcre_fptr _ flags) (cstr,len) = do
 
 -- | wrapMatchAll is an improvement over wrapMatch since it only
 -- allocates memory with allocaBytes once at the start.
--- 
--- 
+--
+--
 wrapMatchAll (Regex pcre_fptr _ flags) (cstr,len) = do
  nullTest cstr "wrapMatchAll cstr" $ do
   withForeignPtr pcre_fptr $ \regex -> do
@@ -292,7 +300,7 @@ wrapMatchAll (Regex pcre_fptr _ flags) (cstr,len) = do
                        let acc' = acc . (toMatchArray nsub_int pairs:)
                        case pairs of
                          [] -> return (Right (acc' []))
-                         ((s,e):_) | s==e -> if s == len 
+                         ((s,e):_) | s==e -> if s == len
                                                then return (Right (acc' []))
                                                else loop acc' flags' e
                                    | otherwise -> loop acc' flags e
